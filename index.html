@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-teal-400 min-h-screen flex items-center justify-center">
+  <div class="bg-white shadow-lg rounded-lg w-full max-w-4xl p-6">
+    <h1 class="text-center text-3xl font-bold text-gray-800 mb-6">To-Do List</h1>
+
+    <div class="flex items-center gap-2 mb-4">
+      <input 
+        type="text" 
+        id="todo-input" 
+        placeholder="Add your task..." 
+        class="flex-grow border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+      >
+      <button 
+        id="add-task" 
+        class="bg-teal-500 text-white rounded-lg px-4 py-2 hover:bg-teal-600 transition"
+      >Add</button>
+    </div>
+
+    <div>
+      <table class="table-auto w-full border-collapse border border-gray-300">
+        <thead>
+          <tr class="bg-teal-100">
+            <th class="border border-gray-300 px-4 py-2">Num</th>
+            <th class="border border-gray-300 px-4 py-2">Task</th>
+            <th class="border border-gray-300 px-4 py-2">Date</th>
+            <th class="border border-gray-300 px-4 py-2">Status</th>
+            <th class="border border-gray-300 px-4 py-2">Edit</th>
+            <th class="border border-gray-300 px-4 py-2">Delete</th>
+          </tr>
+        </thead>
+        <tbody id="todo-list">
+          <!-- Dynamically added tasks will appear here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const todoInput = document.getElementById('todo-input');
+    const addTaskButton = document.getElementById('add-task');
+    const todoList = document.getElementById('todo-list');
+
+    let taskId = 0;
+    let editMode = false;
+    let currentEditRow = null;
+
+    // Function to get the current timestamp
+    const getCurrentTimestamp = () => {
+      const now = new Date();
+      return now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+    };
+
+    // Function to add or update a task
+    const handleTask = () => {
+      const taskText = todoInput.value.trim();
+      if (!taskText) return;
+
+      if (editMode) {
+        // Update task
+        const taskTextElement = currentEditRow.querySelector('.task-text');
+        const timestampElement = currentEditRow.querySelector('.timestamp');
+
+        taskTextElement.textContent = taskText;
+        timestampElement.textContent = getCurrentTimestamp(); // Update timestamp
+
+        // Reset to add mode
+        addTaskButton.textContent = 'Add';
+        todoInput.value = '';
+        editMode = false;
+        currentEditRow = null;
+      } else {
+        // Add new task
+        taskId++;
+        const timestamp = getCurrentTimestamp();
+        const row = document.createElement('tr');
+        row.classList.add('bg-white', 'hover:bg-gray-100');
+        row.innerHTML = `
+          <td class="border border-gray-300 px-4 py-2 text-center">${taskId}</td>
+          <td class="border border-gray-300 px-4 py-2 task-text">${taskText}</td>
+          <td class="border border-gray-300 px-4 py-2 text-center timestamp">${timestamp}</td>
+          <td class="border border-gray-300 px-4 py-2 text-center">
+            <button class="status-btn bg-blue-500 text-white rounded-lg px-3 py-1 hover:bg-blue-600">Pending</button>
+          </td>
+          <td class="border border-gray-300 px-4 py-2 text-center">
+            <button class="edit-btn bg-yellow-500 text-white rounded-lg px-3 py-1 hover:bg-yellow-600">Edit</button>
+          </td>
+          <td class="border border-gray-300 px-4 py-2 text-center">
+            <button class="delete-btn bg-red-500 text-white rounded-lg px-3 py-1 hover:bg-red-600">Delete</button>
+          </td>
+        `;
+
+        todoList.appendChild(row);
+        todoInput.value = '';
+
+        // Add event listeners for the status, edit, and delete buttons
+        const statusButton = row.querySelector('.status-btn');
+        const editButton = row.querySelector('.edit-btn');
+        const deleteButton = row.querySelector('.delete-btn');
+
+        statusButton.addEventListener('click', () => {
+          if (statusButton.textContent === 'Pending') {
+            statusButton.textContent = 'Completed';
+            statusButton.classList.replace('bg-blue-500', 'bg-green-500');
+            statusButton.classList.replace('hover:bg-blue-600', 'hover:bg-green-600');
+          } else {
+            statusButton.textContent = 'Pending';
+            statusButton.classList.replace('bg-green-500', 'bg-blue-500');
+            statusButton.classList.replace('hover:bg-green-600', 'hover:bg-blue-600');
+          }
+        });
+
+        editButton.addEventListener('click', () => {
+          todoInput.value = row.querySelector('.task-text').textContent;
+          addTaskButton.textContent = 'Update';
+          editMode = true;
+          currentEditRow = row;
+        });
+
+        deleteButton.addEventListener('click', () => {
+          todoList.removeChild(row);
+        });
+      }
+    };
+
+    // Event listener for the Add/Update Task button
+    addTaskButton.addEventListener('click', handleTask);
+
+    // Event listener for pressing Enter in the input field
+    todoInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleTask();
+      }
+    });
+  </script>
+</body>
+</html>
